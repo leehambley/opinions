@@ -195,13 +195,13 @@ module Opinions
         super
         self.class.registered_opinions.each do |opinion|
           self.class.send :define_method, :"#{opinion}_by" do |*args|
-            opinional, time = *args
-            time            = time || Time.now.utc
-            e = Opinion.new(object: opinional, target: self, opinion: opinion)
+            opinionated, time = *args
+            time              = time || Time.now.utc
+            e = Opinion.new(object: opinionated, target: self, opinion: opinion)
             true & e.persist(time: time)
           end
-          self.class.send :define_method, :"cancel_#{opinion}_by" do |opinional|
-            Opinion.new(object: opinional, target: self, opinion: opinion).remove
+          self.class.send :define_method, :"cancel_#{opinion}_by" do |opinionated|
+            true & Opinion.new(object: opinionated, target: self, opinion: opinion).remove
           end
          self.class.send :define_method, :"#{opinion}_votes" do
            lookup_key_builder = KeyBuilder.new(object: self, opinion: opinion)
@@ -225,11 +225,43 @@ module Opinions
     end
 
     module ClassMethods
-
+      def opinions(*opinions)
+        opinions.each { |opinion| register_opinion(opinion.to_sym) }
+      end
+      def register_opinion(name)
+        @registered_opinions ||= Array.new
+        @registered_opinions <<  name
+      end
+      def registered_opinions
+        @registered_opinions
+      end
     end
 
     module InstanceMethods
-
+      def initialize(*args)
+        super
+        self.class.registered_opinions.each do |opinion|
+          self.class.send :define_method, :"#{opinion}" do |*args|
+            target, time = *args
+            time         = time || Time.now.utc
+            e = Opinion.new(object: self, target: target, opinion: opinion)
+            true & e.persist(time: time)
+          end
+          self.class.send :define_method, :"cancel_#{opinion}" do |pollable|
+            true & Opinion.new(object: self, target: pollable, opinion: opinion).remove
+          end
+          self.class.send :define_method, :"have_#{opinion}_on" do |pollable|
+            true
+          end
+          self.class.send :define_method, :"#{opinion}_opinions" do
+            lookup_key_builder = KeyBuilder.new(object: self, opinion: opinion)
+            keys = Opinions.backend.keys_matching(lookup_key_builder.key + "*")
+            keys.collect do |key_name|
+              OpinionFactory.new(key_name).opinion
+            end.flatten
+          end
+        end
+      end
     end
 
   end

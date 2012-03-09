@@ -21,7 +21,7 @@ module Opinions
 
     end
 
-    def test_cancelling_an_vote_by_any_conforming_object
+    def test_cancelling_a_vote_by_any_conforming_object
 
       example_object = ExampleObject.new
       example_object.id = 123

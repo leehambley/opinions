@@ -21,7 +21,11 @@ end
 This simple example shows that in our logical model cat pictures can either be
 liked, or disliked. The following methods are available to all instances of `CatPicture`:
 
+ * `like_by(...)`
+ * `cancel_like_by(...)`
  * `like_opinions`
+ * `dialike_by(...)`
+ * `cancel_dislike_by(...)`
 
 On the flip-side, one needs a way to share one's feelings, from the model representing
 a user, or rater, or similar, one can easily use the opposite:
