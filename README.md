@@ -1,6 +1,6 @@
 # Opinions
 
-**Store emotions in Redis.** *Opinions* allows the storage of emotions in
+**Store opinions in Redis.** *Opinions* allows the storage of opinions in
 Redis, a fast and atomic structured data store. If one's users *hate*, *love*,
 *appreciate*, *despise* or *just-don-t-care*, one can store that easily via a
 simple API.
@@ -13,7 +13,7 @@ numerical.
 class CatPicture < ActiveRecord::Base
 
   include Opinions::Pollable
-  emotions :like, :dislike
+  opinions :like, :dislike
 
 end
 ```
@@ -21,9 +21,7 @@ end
 This simple example shows that in our logical model cat pictures can either be
 liked, or disliked. The following methods are available to all instances of `CatPicture`:
 
- * `number_of_like`
- * `number_of_likes` (if `ActiveSupport::Inclector` is available.)
- * `emotion_summary` Returns a hash such as: `{like: 456, dislike: 3}`
+ * `like_opinions`
 
 On the flip-side, one needs a way to share one's feelings, from the model representing
 a user, or rater, or similar, one can easily use the opposite:
@@ -32,6 +30,7 @@ a user, or rater, or similar, one can easily use the opposite:
 class User < ActiveRecord::Base
 
   include Opinions::Opinionated
+  opinions :like, :dislike
 
 end
 ```
@@ -44,19 +43,19 @@ This module will mix-into the `User` the following methods:
  * `cancel_dislike(something_dislikeable)`
  * `like?(something_likeable)`
 
-These methods can be passed instances of any class which has those emotions defined.
+These methods can be passed instances of any class which has those opinions defined.
 
 **Passing anything else will cause undefined behaviour.**
 
 ## Inspiration
 
 *Opinions* is inspired by [`schneems/likeable`](https://github.com/schneems/Likeable). A few
-things concerned me about that project, so I wrote *emotions* after contributing
+things concerned me about that project, so I wrote *opinions* after contributing
 significant fixes to *likeable*.
 
 ### What's different from *Likeable*?
 
-* There are no hard-coded assumptions about which emotions you'll be using, that's
+* There are no hard-coded assumptions about which opinions you'll be using, that's
   up to your project needs.
 
 * There are no callbacks, these are better handled with observers, either in the
@@ -84,7 +83,7 @@ significant fixes to *likeable*.
 * *Likeable* doesn't store *symetrical* relationships, using *Likeable*
   it's only possible to have one type of object sharing opinions on any
   other (*Users*). *Opinions* stores the relationship symetrically, so
-  many kinds of objects can store many kinds of emotions.
+  many kinds of objects can store many kinds of opinions.
 
 * *Likeable* stores the class name unaltered, this can cause problems
   with namespaced classes as the class namespace separator in Ruby is
@@ -105,7 +104,7 @@ passed then it will
 
 Add this line to your application's Gemfile:
 
-    gem 'emotions'
+    gem 'opinions'
 
 And then execute:
 
@@ -113,7 +112,7 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install emotions
+    $ gem install opinions
 
 ## Usage
 
@@ -136,11 +135,12 @@ structure would be:
 ``` ruby
 class Recommendation
   iclude Opinions::Pollable
-  emotions :like
+  opinions :like
 end
 
 class User
   include Opinions::Opinionated
+
 end
 
 User.find(123).like(Recommendation.find(789)

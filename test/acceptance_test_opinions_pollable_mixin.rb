@@ -2,7 +2,7 @@ require 'test_helper'
 
 module Opinions
 
-  class AcceptanceTestEmptionsPollable < MiniTest::Acceptance::TestCase
+  class AcceptanceTestOpinionsPollable < MiniTest::Acceptance::TestCase
 
     def test_mixing_in_pollable_makes_the_opinions_method_available
 
@@ -28,7 +28,7 @@ module Opinions
 
       assert ExampleTarget.new.respond_to?(:example_opinion_by)
       assert ExampleTarget.new.respond_to?(:cancel_example_opinion_by)
-      # assert ExampleTarget.new.respond_to?(:example_opinion_votes)
+      assert ExampleTarget.new.respond_to?(:example_opinion_votes)
 
     end
 
@@ -86,16 +86,19 @@ module Opinions
       ExampleTarget.send(:opinions, :example_opinion)
 
       example_target = ExampleTarget.new
-      example_target.id = 456
+      example_target.id = '456'
 
       example_object = ExampleObject.new
-      example_object.id = 123
+      example_object.id = '123'
 
       Opinions.backend = ::MiniTest::Mock.new
       Opinions.backend.expect(:keys_matching, ["ExampleTarget:example_opinion:456:ExampleObject"], ["ExampleTarget:example_opinion:456*"])
       Opinions.backend.expect(:read_key, {"123" => t}, ["ExampleTarget:example_opinion:456:ExampleObject"])
 
-      expected_opinion = Opinion.new(target: example_target, object: example_object, opinion: :example_opinion)
+      expected_opinion = Opinion.new(target: example_target,
+                                     object: example_object,
+                                     opinion: :example_opinion,
+                                     created_at: t)
 
       assert_equal expected_opinion, example_target.example_opinion_votes.first
 

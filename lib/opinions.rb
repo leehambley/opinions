@@ -37,6 +37,23 @@ module Opinions
 
   end
 
+  class OpinionFactory
+    attr_reader :key_name
+    def initialize(key_name)
+      @key_name = key_name
+    end
+    def opinion
+      Opinions.backend.read_key(key_name).collect do |object_id, time|
+        target_class_name, opinion, target_id, object_class_name = key_name.split ':'
+        target_class, object_class = Kernel.const_get(target_class_name), Kernel.const_get(object_class_name)
+        Opinion.new(target: target_class.find(target_id),
+                    object: object_class.find(object_id),
+                    opinion: opinion.to_sym,
+                    created_at: time)
+      end
+    end
+  end
+
   class RedisBackend
 
     attr_accessor :redis
@@ -57,7 +74,7 @@ module Opinions
     private :write_key
 
     def read_key(key_name)
-      redis.get(key_name)
+      redis.hgetall(key_name)
     end
 
     def read_sub_key(key_name, key)
@@ -103,6 +120,7 @@ module Opinions
     def initialize(args = {})
       @target, @object, @opinion, @created_at =
         args.fetch(:target), args.fetch(:object), args.fetch(:opinion), args.fetch(:created_at, nil)
+      self
     end
 
     def persist(args = {time: Time.now})
@@ -132,6 +150,7 @@ module Opinions
     end
 
     def ==(other_opinion)
+      raise ArgumentError, "Can't compare a #{other_opinion} with #{self}" unless other_opinion.is_a?(Opinion)
       opinion_equal  = self.opinion == other_opinion.opinion
       opinion_target = self.target  == other_opinion.target
       opinion_object = self.object  == other_opinion.object
@@ -177,7 +196,7 @@ module Opinions
         self.class.registered_opinions.each do |opinion|
           self.class.send :define_method, :"#{opinion}_by" do |*args|
             opinional, time = *args
-            time  ||= Time.now.utc
+            time            = time || Time.now.utc
             e = Opinion.new(object: opinional, target: self, opinion: opinion)
             true & e.persist(time: time)
           end
@@ -188,9 +207,8 @@ module Opinions
            lookup_key_builder = KeyBuilder.new(object: self, opinion: opinion)
            keys = Opinions.backend.keys_matching(lookup_key_builder.key + "*")
            keys.collect do |key_name|
-             key_loader = KeyLoader.new(key_name)
-             Opinion.new(target: true, opinion: true, object: key_loader.object)
-           end
+             OpinionFactory.new(key_name).opinion
+           end.flatten
          end
         end
       end

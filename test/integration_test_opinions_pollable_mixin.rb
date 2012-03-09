@@ -2,7 +2,7 @@ require 'test_helper'
 
 module Opinions
 
-  class IntegrationTestEmptionsPollable < MiniTest::Integration::TestCase
+  class IntegrationTestOpinionsPollable < MiniTest::Integration::TestCase
 
     def test_being_voted_by_any_conforming_object
 
@@ -42,8 +42,6 @@ module Opinions
     end
 
     def test_counting_the_number_of_votes
-
-      skip
 
       example_object_one = ExampleObject.new
       example_object_one.id = 123
