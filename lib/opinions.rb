@@ -39,15 +39,16 @@ module Opinions
 
   class OpinionFactory
     attr_reader :key_name
-    def initialize(key_name)
-      @key_name = key_name
+    def initialize(args)
+      @direction = args.has_key?(:from_target) ? :ot : :to
+      @key_name  = args.first[1]
     end
     def opinion
       Opinions.backend.read_key(key_name).collect do |object_id, time|
         target_class_name, opinion, target_id, object_class_name = key_name.split ':'
         target_class, object_class = Kernel.const_get(target_class_name), Kernel.const_get(object_class_name)
-        Opinion.new(target: target_class.find(target_id),
-                    object: object_class.find(object_id),
+        Opinion.new(target: (@direction == :to ? object_class.find(object_id) : target_class.find(target_id)),
+                    object: (@direction == :to ? target_class.find(target_id) : object_class.find(object_id)),
                     opinion: opinion.to_sym,
                     created_at: time)
       end
@@ -123,7 +124,7 @@ module Opinions
       self
     end
 
-    def persist(args = {time: Time.now})
+    def persist(args = {time: Time.now.utc})
       backend.write_keys({
         target_key => {object.id.to_s => args.fetch(:time)},
         object_key => {target.id.to_s => args.fetch(:time)},
@@ -207,7 +208,7 @@ module Opinions
            lookup_key_builder = KeyBuilder.new(object: self, opinion: opinion)
            keys = Opinions.backend.keys_matching(lookup_key_builder.key + "*")
            keys.collect do |key_name|
-             OpinionFactory.new(key_name).opinion
+             OpinionFactory.new(from_target: key_name).opinion
            end.flatten
          end
         end
@@ -251,13 +252,13 @@ module Opinions
             true & Opinion.new(object: self, target: pollable, opinion: opinion).remove
           end
           self.class.send :define_method, :"have_#{opinion}_on" do |pollable|
-            true
+            send("#{opinion}_opinions").collect { |o| o.target == pollable }.any?
           end
           self.class.send :define_method, :"#{opinion}_opinions" do
             lookup_key_builder = KeyBuilder.new(object: self, opinion: opinion)
             keys = Opinions.backend.keys_matching(lookup_key_builder.key + "*")
             keys.collect do |key_name|
-              OpinionFactory.new(key_name).opinion
+              OpinionFactory.new(from_object: key_name).opinion
             end.flatten
           end
         end

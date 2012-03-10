@@ -35,7 +35,7 @@ module Opinions
 
     def test_creating_an_opinion_persits_it_to_the_backend
 
-      t = Time.now
+      t = Time.now.utc
 
       ExampleObject.send(:include, Opinionated)
       ExampleObject.send(:opinions, :example_opinion)
@@ -58,7 +58,7 @@ module Opinions
 
     def test_calcelling_an_opinion_removes_both_sides_of_the_relationship_from_the_backend
 
-      t = Time.now
+      t = Time.now.utc
 
       ExampleObject.send(:include, Opinionated)
       ExampleObject.send(:opinions, :example_opinion)
@@ -81,7 +81,7 @@ module Opinions
 
     def test_opinions_retrieved_from_the_backend_en_masse
 
-      t = Time.now
+      t = Time.now.utc
 
       ExampleObject.send(:include, Opinionated)
       ExampleObject.send(:opinions, :example_opinion)
@@ -107,7 +107,33 @@ module Opinions
 
     end
 
+    def test_opinions_checking_if_an_object_has_a_vote_for_a_target
 
+      t = Time.now.utc
+
+      ExampleObject.send(:include, Opinionated)
+      ExampleObject.send(:opinions, :example_opinion)
+
+      example_target = ExampleTarget.new
+      example_target.id = '456'
+
+      example_object = ExampleObject.new
+      example_object.id = '123'
+
+      Opinions.backend = ::MiniTest::Mock.new
+      Opinions.backend.expect(:keys_matching, ["ExampleObject:example_opinion:123:ExampleTarget"], ["ExampleObject:example_opinion:123*"])
+      Opinions.backend.expect(:read_key, {"456" => t}, ["ExampleObject:example_opinion:123:ExampleTarget"])
+
+      expected_opinion = Opinion.new(target: example_target,
+                                     object: example_object,
+                                     opinion: :example_opinion,
+                                     created_at: t)
+
+      assert example_object.have_example_opinion_on(example_target)
+
+      Opinions.backend.verify
+
+    end
 
   end
 

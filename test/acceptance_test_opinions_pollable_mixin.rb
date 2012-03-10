@@ -34,7 +34,7 @@ module Opinions
 
     def test_creating_an_opinion_persits_it_to_the_backend
 
-      t = Time.now
+      t = Time.now.utc
 
       ExampleTarget.send(:include, Pollable)
       ExampleTarget.send(:opinions, :example_opinion)
@@ -57,7 +57,7 @@ module Opinions
 
     def test_calcelling_an_opinion_removes_both_sides_of_the_relationship_from_the_backend
 
-      t = Time.now
+      t = Time.now.utc
 
       ExampleTarget.send(:include, Pollable)
       ExampleTarget.send(:opinions, :example_opinion)
@@ -80,7 +80,7 @@ module Opinions
 
     def test_opinions_retrieved_from_the_backend_en_masse
 
-      t = Time.now
+      t = Time.now.utc
 
       ExampleTarget.send(:include, Pollable)
       ExampleTarget.send(:opinions, :example_opinion)

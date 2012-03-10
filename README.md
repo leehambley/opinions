@@ -23,9 +23,10 @@ liked, or disliked. The following methods are available to all instances of `Cat
 
  * `like_by(...)`
  * `cancel_like_by(...)`
- * `like_opinions`
+ * `like_votes()`
  * `dialike_by(...)`
  * `cancel_dislike_by(...)`
+ * `dislike_votes()`
 
 On the flip-side, one needs a way to share one's feelings, from the model representing
 a user, or rater, or similar, one can easily use the opposite:
@@ -41,15 +42,25 @@ end
 
 This module will mix-into the `User` the following methods:
 
- * `like(something_likeable)`
- * `cancel_like(something_likeable)`
- * `dislike(something_dislikeable)`
- * `cancel_dislike(something_dislikeable)`
- * `like?(something_likeable)`
+ * `like(...)`
+ * `dislike(...)`
+ * `cancel_like(...)`
+ * `cancel_dislike(...)`
+ * `like_opinions()`
+ * `dislike_opinions()`
+ * `have_like_on(...)`
+ * `have_dislike_on(...)`
 
 These methods can be passed instances of any class which has those opinions defined.
 
-**Passing anything else will cause undefined behaviour.**
+It should be absolutely trivial to extend these to any behaviour you
+need. 
+
+**Note:** It is by design that these methods do not read particularly
+naturally, you are invited to read the source, and tests of the
+Pollable, and Opinionated modules and implement them in a way which
+better reflects the grammar of your application, and desired *Opinions*.
+Think of these modules as examples, something to expand upon.
 
 ## Inspiration
 
