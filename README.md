@@ -177,7 +177,7 @@ end
 
 class User
   include Opinions::Opinionated
-
+  opinions :like
 end
 
 User.find(123).like(Recommendation.find(789)
