@@ -138,7 +138,7 @@ The Gem must be configured with at LEAST this minimum:
 
 ``` ruby
 Opinions.backend       = Opinions::RedisBackend.new
-Opinions.backebd.redis = Redis.new(...)
+Opinions.backend.redis = Redis.new(...)
 ```
 
 The `Redis` object here is provided by the `redis-rb` Gem, and can
